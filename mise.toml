@@ -1,0 +1,23 @@
+# swift-hw verbs (`mise <task>` from the repo root). check = format + build,
+# what CI runs; format-clean and 0 warnings is the gate.
+
+[tasks.build]
+description = "swift build (debug)"
+run = "swift build"
+
+[tasks.format]
+description = "swift-format in place (the Xcode toolchain's, studio config: .swift-format)"
+run = "xcrun swift-format --recursive Sources/ --in-place"
+
+[tasks.lint]
+description = "swift-format lint, advisory (format-clean is the gate, not lint taste)"
+run = "xcrun swift-format lint --recursive Sources/"
+
+[tasks.check]
+description = "format + build (release), 0 warnings: the gate"
+run = '''
+mise run format
+out=$(swift build -c release 2>&1) || { echo "$out"; exit 1; }
+if echo "$out" | grep -q "warning:"; then echo "$out"; echo "swift-hw: warnings are errors"; exit 1; fi
+echo "swift-hw: 0 errors, 0 warnings"
+'''
